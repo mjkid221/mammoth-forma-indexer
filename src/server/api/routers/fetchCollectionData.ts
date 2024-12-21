@@ -5,6 +5,7 @@ import {
   publicProcedure,
   protectedProcedure,
   cronAuthMiddleware,
+  cacheHeaderMiddleware,
 } from "~/server/api/trpc";
 import { priceHistory } from "~/server/db/schema";
 import axios from "axios";
@@ -86,7 +87,7 @@ export const collectionDataRouter = createTRPCRouter({
         );
       }
 
-      const tokenPriceNative = data.avgSalePrice;
+      const tokenPriceNative = data.floorPrice;
       const currentVolumeNativeToken = data.totalSalesVolume;
       const latestPriceEntry = await databaseQuery;
       const latestTotalVolumeNativeToken =
@@ -114,6 +115,7 @@ export const collectionDataRouter = createTRPCRouter({
     }),
 
   getLatest: publicProcedure
+    .use(cacheHeaderMiddleware)
     .input(
       z.object({
         collectionAddress: z.string(),

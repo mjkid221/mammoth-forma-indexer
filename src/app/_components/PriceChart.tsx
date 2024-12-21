@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { TradingViewChart } from "./TradingViewChart";
 import { type Time } from "lightweight-charts";
 import { type TimeData } from "./types";
+import { DEFAULT_TIME_FRAME } from "~/lib/constants/charts";
 
 type TimeInterval = "1w" | "1d" | "4h" | "15m" | "10m" | "5m";
 
@@ -22,7 +23,7 @@ export function PriceChart({
 }: PriceChartProps) {
   const timeFrames: TimeInterval[] = ["1w", "1d", "4h", "15m", "10m", "5m"];
   const [selectedTimeFrame, setSelectedTimeFrame] =
-    useState<TimeInterval>("1d");
+    useState<TimeInterval>(DEFAULT_TIME_FRAME);
   const [data, setData] = useState(initialData);
 
   const handleTimeFrameChange = async (timeFrame: TimeInterval) => {

@@ -118,6 +118,15 @@ export const corsMiddleware = t.middleware(({ next, ctx }) => {
   return next();
 });
 
+export const cacheHeaderMiddleware = t.middleware(async ({ next, ctx }) => {
+  const result = await next();
+  ctx.headers.set(
+    "cache-control",
+    "public, max-age=300, stale-while-revalidate=300",
+  );
+  return result;
+});
+
 /**
  * Public (unauthenticated) procedure
  *
