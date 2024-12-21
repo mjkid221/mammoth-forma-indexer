@@ -6,18 +6,17 @@ import { api } from "~/trpc/server";
 import { env } from "~/env";
 
 import { PriceChart } from "./_components/PriceChart";
+import { DEFAULT_START_TIME, DEFAULT_TIME_FRAME } from "~/lib/constants/charts";
 
 type TimeInterval = "1w" | "1d" | "4h" | "15m" | "10m" | "5m";
 
-const DEFAULT_START_TIME = 1734752701;
 export default async function Home() {
-  const defaultTimeFrame = "5m";
   const priceData = await api.collectionData.getLatest({
     collectionAddress: env.NEXT_PUBLIC_COLLECTION_ADDRESS,
     priceType: "native",
     startTime: DEFAULT_START_TIME,
     endTime: Math.floor(Date.now() / 1000),
-    timeInterval: defaultTimeFrame,
+    timeInterval: DEFAULT_TIME_FRAME,
   });
 
   async function getDataForTimeFrame(timeFrame: TimeInterval) {
@@ -85,13 +84,13 @@ export default async function Home() {
           <TabsContent value="volume">
             <TradingViewChart
               data={priceData}
-              timeInterval={defaultTimeFrame}
+              timeInterval={DEFAULT_TIME_FRAME}
             />
           </TabsContent>
           <TabsContent value="sales">
             <TradingViewChart
               data={priceData}
-              timeInterval={defaultTimeFrame}
+              timeInterval={DEFAULT_TIME_FRAME}
             />
           </TabsContent>
         </Tabs>
