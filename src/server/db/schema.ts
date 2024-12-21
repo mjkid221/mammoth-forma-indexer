@@ -34,6 +34,10 @@ export const priceHistory = createTable(
     priceNative: numeric("price_native"),
     priceUsd: numeric("price_usd", { scale: 2 }),
     nativeToken: varchar("native_token"),
+    holders: integer("holders"),
+    listingQty: integer("listing_qty"),
+    volumeNativeToken: numeric("volume_native_token"),
+    volumeUsd: numeric("volume_usd", { scale: 2 }),
   },
   (table) => ({
     collectionAddressIndex: index("collection_address_idx").on(

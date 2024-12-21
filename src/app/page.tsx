@@ -5,15 +5,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { api } from "~/trpc/server";
 import { env } from "~/env";
 
-// Mock data - replace with real API data
-const mockPriceData = Array.from({ length: 100 }, (_, i) => ({
-  time: new Date(Date.now() - (100 - i) * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0]!,
-  value: Math.random() * 100 + 50,
-}));
-
-export default function Home() {
+export default async function Home() {
+  const priceData = await api.collectionData.getLatest({
+    collectionAddress: env.NEXT_PUBLIC_COLLECTION_ADDRESS,
+    priceType: "native",
+    startTime: 1734752701,
+    endTime: Math.floor(Date.now() / 1000),
+  });
+  console.log(priceData);
   return (
     <main className="container mx-auto space-y-4 p-4">
       <div className="flex items-center justify-between">
@@ -70,13 +69,13 @@ export default function Home() {
                 <span className="text-muted-foreground">24h</span>
               </div>
             </div>
-            <TradingViewChart data={mockPriceData} />
+            <TradingViewChart data={priceData} />
           </TabsContent>
           <TabsContent value="volume">
-            <TradingViewChart data={mockPriceData} />
+            <TradingViewChart data={priceData} />
           </TabsContent>
           <TabsContent value="sales">
-            <TradingViewChart data={mockPriceData} />
+            <TradingViewChart data={priceData} />
           </TabsContent>
         </Tabs>
       </Card>
