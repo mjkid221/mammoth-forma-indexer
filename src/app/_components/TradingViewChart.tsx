@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType } from "lightweight-charts";
+import { createChart, ColorType, type Time } from "lightweight-charts";
 
 interface ChartProps {
   data: {
-    time: string;
+    time: Time;
     value: number;
   }[];
 }
@@ -44,12 +44,19 @@ export function TradingViewChart({ data }: ChartProps) {
       },
     });
 
-    const lineSeries = chart.addLineSeries({
-      color: "#2563eb", // Using a specific blue color instead of CSS variable
-      lineWidth: 2,
-    });
+    // const lineSeries = chart.addLineSeries({
+    //   color: "#2563eb", // Using a specific blue color instead of CSS variable
+    //   lineWidth: 2,
+    // });
 
-    lineSeries.setData(data);
+    // lineSeries.setData(data);
+    const areaSeries = chart.addAreaSeries({
+      lineColor: "#2962FF",
+      topColor: "#2962FF",
+      bottomColor: "rgba(41, 98, 255, 0.28)",
+    });
+    areaSeries.setData(data);
+
     chart.timeScale().fitContent();
 
     chartRef.current = chart;

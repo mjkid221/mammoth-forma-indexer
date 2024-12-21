@@ -106,10 +106,7 @@ export const cronAuthMiddleware = t.middleware(({ next, ctx }) => {
 
 export const corsMiddleware = t.middleware(({ next, ctx }) => {
   const origin = ctx.headers.get("origin");
-  const allowedOrigins = [
-    process.env.NEXT_PUBLIC_APP_URL,
-    // Add any additional allowed origins here
-  ];
+  const allowedOrigins = [getBaseUrl()];
 
   if (!origin || !allowedOrigins.includes(origin)) {
     throw new TRPCError({
@@ -129,4 +126,12 @@ export const corsMiddleware = t.middleware(({ next, ctx }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
-export const protectedProcedure = t.procedure.use(timingMiddleware);
+export const protectedProcedure = t.procedure
+  .use(corsMiddleware)
+  .use(timingMiddleware);
+
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT ?? 3000}`;
+}
