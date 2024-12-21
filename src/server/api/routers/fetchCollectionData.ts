@@ -4,42 +4,16 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
+  cronAuthMiddleware,
 } from "~/server/api/trpc";
 import { priceHistory } from "~/server/db/schema";
 import axios from "axios";
 import { coingeckoApi, coinmarketcapApi } from "~/lib/api";
-
-export type PriceData = {
-  numMinted: number;
-  primaryVolume: number;
-  totalSalesQty: number;
-  totalSalesVolume: number;
-  maxSalePrice: number;
-  minSalePrice: number;
-  avgSalePrice: number;
-  floorPrice: number;
-  numListed: number;
-  holders: number;
-};
-
-type CmcQuote = {
-  quote: {
-    USD: {
-      price: number;
-    };
-  };
-};
-export type CoinmarketcapPriceData = {
-  data: Record<string, CmcQuote>;
-};
-
-export type CoingeckoPriceData = {
-  market_data: {
-    current_price: {
-      usd: number;
-    };
-  };
-};
+import {
+  type PriceData,
+  type CoinmarketcapPriceData,
+  type CoingeckoPriceData,
+} from "./types";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -60,6 +34,7 @@ async function retry<T>(
 
 export const collectionDataRouter = createTRPCRouter({
   updatePriceData: protectedProcedure
+    .use(cronAuthMiddleware)
     .input(
       z.object({
         collectionAddress: z.string(),
@@ -123,11 +98,17 @@ export const collectionDataRouter = createTRPCRouter({
 
   //   return post ?? null;
   // }),
-  getPriceData: publicProcedure.query(async ({ ctx }) => {
-    const { data } = await axios.get<PriceData>(
-      `https://api.modularium.art/stats/0xbE25A97896b9CE164a314C70520A4df55979a0c6`,
-    );
-    console.log(data);
-    return data;
-  }),
+  getCollectionData: publicProcedure
+    .input(
+      z.object({
+        collectionAddress: z.string(),
+      }),
+    )
+    .query(async ({ input: { collectionAddress } }) => {
+      const { data } = await axios.get<PriceData>(
+        `https://api.modularium.art/stats/${collectionAddress}`,
+      );
+      console.log(data);
+      return data;
+    }),
 });

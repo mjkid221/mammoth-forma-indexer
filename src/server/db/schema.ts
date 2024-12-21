@@ -10,6 +10,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import { env } from "~/env";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -17,10 +18,12 @@ import {
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator(() => `price_history`);
+export const createTable = pgTableCreator(
+  (name: string) => `price_history_${name}`,
+);
 
 export const priceHistory = createTable(
-  "_",
+  env.NEXT_PUBLIC_PROJECT_NAME,
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     collectionAddress: varchar("collection_address", { length: 42 }),

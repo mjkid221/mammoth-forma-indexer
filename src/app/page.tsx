@@ -3,6 +3,7 @@ import { Card } from "~/components/ui/card";
 import { TradingViewChart } from "./_components/TradingViewChart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { api } from "~/trpc/server";
+import { env } from "~/env";
 
 // Mock data - replace with real API data
 const mockPriceData = Array.from({ length: 100 }, (_, i) => ({
@@ -17,7 +18,7 @@ export default function Home() {
     <main className="container mx-auto space-y-4 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold">Bored Ape Yacht Club</h1>
+          <h1 className="text-4xl font-bold">{env.NEXT_PUBLIC_PROJECT_NAME}</h1>
           <p className="text-muted-foreground">Floor Price: 50.5 ETH</p>
         </div>
         <div className="flex items-center space-x-4">
