@@ -96,11 +96,28 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   return result;
 });
 
-export const authMiddleware = t.middleware(({ next, ctx }) => {
+export const cronAuthMiddleware = t.middleware(({ next, ctx }) => {
   const cronSecret = ctx.headers.get("authorization");
   if (cronSecret !== process.env.CRON_SECRET) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+  return next();
+});
+
+export const corsMiddleware = t.middleware(({ next, ctx }) => {
+  const origin = ctx.headers.get("origin");
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    // Add any additional allowed origins here
+  ];
+
+  if (!origin || !allowedOrigins.includes(origin)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Origin not allowed",
+    });
+  }
+
   return next();
 });
 
@@ -112,6 +129,4 @@ export const authMiddleware = t.middleware(({ next, ctx }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
-export const protectedProcedure = t.procedure
-  .use(timingMiddleware)
-  .use(authMiddleware);
+export const protectedProcedure = t.procedure.use(timingMiddleware);
