@@ -107,7 +107,7 @@ export const collectionDataRouter = createTRPCRouter({
         listingQty: data.numListed,
         volumeNativeToken: trueVolumeNativeToken.toString(),
         volumeUsd: trueVolumeUsd.toString(),
-        totalVolumeNativeToken: latestTotalVolumeNativeToken.toString(),
+        totalVolumeNativeToken: currentVolumeNativeToken.toString(),
       });
 
       return { success: true };
