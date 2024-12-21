@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import {
   index,
   integer,
+  numeric,
   pgTableCreator,
   timestamp,
   varchar,
@@ -16,21 +17,24 @@ import {
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `mammoth-indexer_${name}`);
+export const createTable = pgTableCreator(() => `price_history`);
 
-export const posts = createTable(
-  "post",
+export const priceHistory = createTable(
+  "_",
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar("name", { length: 256 }),
+    collectionAddress: varchar("collection_address", { length: 42 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
-    ),
+    timestamp: integer("timestamp").notNull(),
+    priceNative: numeric("price_native"),
+    priceUsd: numeric("price_usd", { scale: 2 }),
+    nativeToken: varchar("native_token"),
   },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  })
+  (table) => ({
+    collectionAddressIndex: index("collection_address_idx").on(
+      table.collectionAddress,
+    ),
+  }),
 );
