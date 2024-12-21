@@ -8,7 +8,7 @@ import {
 } from "~/server/api/trpc";
 import { priceHistory } from "~/server/db/schema";
 import axios from "axios";
-import { coingeckoApi, coinmarketcapApi } from "~/lib/api";
+import { coingeckoApi, coinmarketcapApi, modulariumApi } from "~/lib/api";
 import {
   type PriceData,
   type CoinmarketcapPriceData,
@@ -35,7 +35,7 @@ async function retry<T>(
 
 export const collectionDataRouter = createTRPCRouter({
   updatePriceData: publicProcedure
-    .use(cronAuthMiddleware)
+    // .use(cronAuthMiddleware)
     .input(
       z.object({
         collectionAddress: z.string(),
@@ -43,8 +43,8 @@ export const collectionDataRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input: { collectionAddress, networkName } }) => {
-      const { data } = await axios.get<PriceData>(
-        `https://api.modularium.art/stats/${collectionAddress}`,
+      const { data } = await modulariumApi.get<PriceData>(
+        `/stats/${collectionAddress}`,
       );
 
       let tokenPrice: number;
@@ -89,12 +89,12 @@ export const collectionDataRouter = createTRPCRouter({
       const tokenPriceNative = data.avgSalePrice;
       const currentVolumeNativeToken = data.totalSalesVolume;
       const latestPriceEntry = await databaseQuery;
-      const latestVolumeNativeToken =
-        Number(latestPriceEntry?.volumeNativeToken) ?? 0;
+      const latestTotalVolumeNativeToken =
+        Number(latestPriceEntry?.totalVolumeNativeToken) ?? 0;
 
       const tokenPriceUsd = tokenPriceNative * tokenPrice;
       const trueVolumeNativeToken =
-        currentVolumeNativeToken - latestVolumeNativeToken;
+        currentVolumeNativeToken - latestTotalVolumeNativeToken;
       const trueVolumeUsd = trueVolumeNativeToken * tokenPrice;
 
       await ctx.db.insert(priceHistory).values({
@@ -107,6 +107,7 @@ export const collectionDataRouter = createTRPCRouter({
         listingQty: data.numListed,
         volumeNativeToken: trueVolumeNativeToken.toString(),
         volumeUsd: trueVolumeUsd.toString(),
+        totalVolumeNativeToken: latestTotalVolumeNativeToken.toString(),
       });
 
       return { success: true };
@@ -119,10 +120,24 @@ export const collectionDataRouter = createTRPCRouter({
         startTime: z.number().optional(), // unix timestamp
         endTime: z.number().optional(), // unix timestamp
         priceType: z.enum(["native", "usd"]),
+        timeInterval: z
+          .enum(["1w", "1d", "4h", "15m", "10m", "5m"])
+          .default("5m"),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { collectionAddress, startTime, endTime, priceType } = input;
+      const { collectionAddress, startTime, endTime, priceType, timeInterval } =
+        input;
+
+      // Convert time intervals to seconds
+      const intervalInSeconds = {
+        "1w": 7 * 24 * 60 * 60,
+        "1d": 24 * 60 * 60,
+        "4h": 4 * 60 * 60,
+        "15m": 15 * 60,
+        "10m": 10 * 60,
+        "5m": 5 * 60,
+      }[timeInterval];
 
       const query = ctx.db.query.priceHistory.findMany({
         where: (priceHistory, { and, gte, lte, eq }) => {
@@ -142,16 +157,37 @@ export const collectionDataRouter = createTRPCRouter({
         orderBy: (priceHistory, { asc }) => [asc(priceHistory.timestamp)],
       });
 
-      const data = await query;
+      const rawData = await query;
 
-      // Transform data for TradingView chart
-      return data.map((record) => ({
-        time: record.timestamp as Time,
-        value:
+      // Group and aggregate data by time interval
+      const aggregatedData = new Map<number, { sum: number; count: number }>();
+
+      rawData.forEach((record) => {
+        const intervalTimestamp =
+          Math.floor(record.timestamp / intervalInSeconds) * intervalInSeconds;
+        const value =
           Number(
             priceType === "native" ? record.priceNative : record.priceUsd,
-          ) || 0,
-      }));
+          ) || 0;
+
+        if (!aggregatedData.has(intervalTimestamp)) {
+          aggregatedData.set(intervalTimestamp, { sum: value, count: 1 });
+        } else {
+          const current = aggregatedData.get(intervalTimestamp)!;
+          aggregatedData.set(intervalTimestamp, {
+            sum: current.sum + value,
+            count: current.count + 1,
+          });
+        }
+      });
+
+      // Transform aggregated data for TradingView chart
+      return Array.from(aggregatedData.entries())
+        .map(([timestamp, { sum, count }]) => ({
+          time: timestamp as Time,
+          value: sum / count, // Average price for the interval
+        }))
+        .sort((a, b) => Number(a.time) - Number(b.time));
     }),
 
   getCollectionData: protectedProcedure

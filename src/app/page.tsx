@@ -5,14 +5,32 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { api } from "~/trpc/server";
 import { env } from "~/env";
 
+import { PriceChart } from "./_components/PriceChart";
+
+type TimeInterval = "1w" | "1d" | "4h" | "15m" | "10m" | "5m";
+
+const DEFAULT_START_TIME = 1734752701;
 export default async function Home() {
+  const defaultTimeFrame = "5m";
   const priceData = await api.collectionData.getLatest({
     collectionAddress: env.NEXT_PUBLIC_COLLECTION_ADDRESS,
     priceType: "native",
-    startTime: 1734752701,
+    startTime: DEFAULT_START_TIME,
     endTime: Math.floor(Date.now() / 1000),
+    timeInterval: defaultTimeFrame,
   });
-  console.log(priceData);
+
+  async function getDataForTimeFrame(timeFrame: TimeInterval) {
+    "use server";
+    return await api.collectionData.getLatest({
+      collectionAddress: env.NEXT_PUBLIC_COLLECTION_ADDRESS,
+      priceType: "native",
+      startTime: DEFAULT_START_TIME,
+      endTime: Math.floor(Date.now() / 1000),
+      timeInterval: timeFrame,
+    });
+  }
+
   return (
     <main className="container mx-auto space-y-4 p-4">
       <div className="flex items-center justify-between">
@@ -59,23 +77,22 @@ export default async function Home() {
             <TabsTrigger value="sales">Sales</TabsTrigger>
           </TabsList>
           <TabsContent value="price" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Price Chart</h2>
-                <p className="text-muted-foreground">Floor price over time</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold text-green-500">+2.5%</span>
-                <span className="text-muted-foreground">24h</span>
-              </div>
-            </div>
-            <TradingViewChart data={priceData} />
+            <PriceChart
+              initialData={priceData}
+              onTimeFrameChange={getDataForTimeFrame}
+            />
           </TabsContent>
           <TabsContent value="volume">
-            <TradingViewChart data={priceData} />
+            <TradingViewChart
+              data={priceData}
+              timeInterval={defaultTimeFrame}
+            />
           </TabsContent>
           <TabsContent value="sales">
-            <TradingViewChart data={priceData} />
+            <TradingViewChart
+              data={priceData}
+              timeInterval={defaultTimeFrame}
+            />
           </TabsContent>
         </Tabs>
       </Card>
