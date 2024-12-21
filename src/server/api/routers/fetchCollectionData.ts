@@ -35,7 +35,7 @@ async function retry<T>(
 
 export const collectionDataRouter = createTRPCRouter({
   updatePriceData: publicProcedure
-    // .use(cronAuthMiddleware)
+    .use(cronAuthMiddleware)
     .input(
       z.object({
         collectionAddress: z.string(),
