@@ -2,20 +2,54 @@
 
 import { useEffect, useRef } from "react";
 import { createChart, ColorType, type Time } from "lightweight-charts";
+import { type TimeData } from "./types";
 
 interface ChartProps {
-  data: {
-    time: Time;
-    value: number;
-  }[];
+  data: TimeData[];
+  timeInterval: "1w" | "1d" | "4h" | "15m" | "10m" | "5m";
 }
 
-export function TradingViewChart({ data }: ChartProps) {
+export function TradingViewChart({ data, timeInterval }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
+
+    const getTimeFormatter = (interval: typeof timeInterval) => {
+      return (time: Time) => {
+        const date = new Date((time as number) * 1000);
+
+        switch (interval) {
+          case "1w":
+            return date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+          case "1d":
+            return date.toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              hour12: false,
+            });
+          case "4h":
+            return date.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+          case "15m":
+          case "10m":
+          case "5m":
+            return date.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+        }
+      };
+    };
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
@@ -31,6 +65,9 @@ export function TradingViewChart({ data }: ChartProps) {
       },
       timeScale: {
         borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false,
+        tickMarkFormatter: getTimeFormatter(timeInterval),
       },
       crosshair: {
         horzLine: {
@@ -44,18 +81,12 @@ export function TradingViewChart({ data }: ChartProps) {
       },
     });
 
-    // const lineSeries = chart.addLineSeries({
-    //   color: "#2563eb", // Using a specific blue color instead of CSS variable
-    //   lineWidth: 2,
-    // });
-
-    // lineSeries.setData(data);
-    const areaSeries = chart.addAreaSeries({
-      lineColor: "#2962FF",
-      topColor: "#2962FF",
-      bottomColor: "rgba(41, 98, 255, 0.28)",
+    const lineSeries = chart.addLineSeries({
+      color: "#2563eb",
+      lineWidth: 2,
     });
-    areaSeries.setData(data);
+
+    lineSeries.setData(data);
 
     chart.timeScale().fitContent();
 
@@ -75,7 +106,7 @@ export function TradingViewChart({ data }: ChartProps) {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [data]);
+  }, [data, timeInterval]);
 
   return <div ref={chartContainerRef} className="h-[500px] w-full" />;
 }
