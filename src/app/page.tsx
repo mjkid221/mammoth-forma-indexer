@@ -1,9 +1,7 @@
-import { Users, TrendingUp, Volume2, ChartArea } from "lucide-react";
+import { Users, TrendingUp, ChartArea } from "lucide-react";
 import { Card } from "~/components/ui/card";
-import { TradingViewChart } from "./_components/TradingViewChart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
 import { api } from "~/trpc/server";
-import { env } from "~/env";
 
 import { PriceChart } from "./_components/PriceChart";
 import { DEFAULT_TIME_FRAME } from "~/lib/constants/charts";
@@ -14,9 +12,10 @@ import {
 import { FilterType } from "~/server/api/routers/types";
 import { formatCurrency, formatNumber } from "~/lib/utils/currency";
 import { HoldersChart } from "./_components/HoldersChart";
-
-const projectName = env.NEXT_PUBLIC_PROJECT_NAME;
-const nativeCurrency = env.NEXT_PUBLIC_NATIVE_CURRENCY;
+import { ListingsChart } from "./_components/ListingsChart";
+import { nativeCurrency, projectName } from "~/lib/constants/collectionInfo";
+import { VolumeChart } from "./_components/VolumeChart";
+import { useRootStore } from "~/lib/stores/root";
 
 export default async function Home() {
   const {
@@ -29,6 +28,7 @@ export default async function Home() {
     holders,
     numListed,
   } = await api.collectionData.getCollectionData(getCollectionAddress());
+
   const priceData = await api.collectionData.getLatest(
     getCollectionDataQueryDefaultConfig({
       timeInterval: DEFAULT_TIME_FRAME,
@@ -43,15 +43,11 @@ export default async function Home() {
     },
     {
       label: "Volume",
-      component: (
-        <TradingViewChart data={priceData} timeInterval={DEFAULT_TIME_FRAME} />
-      ),
+      component: <VolumeChart />,
     },
     {
       label: "Listings",
-      component: (
-        <TradingViewChart data={priceData} timeInterval={DEFAULT_TIME_FRAME} />
-      ),
+      component: <ListingsChart />,
     },
     {
       label: "Holders",

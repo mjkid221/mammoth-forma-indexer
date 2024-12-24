@@ -12,12 +12,9 @@ import {
   type CoinmarketcapPriceData,
   type CoingeckoPriceData,
   FilterType,
+  MetricChanges,
 } from "./types";
-import { type Time } from "lightweight-charts";
 import { unstable_cache } from "next/cache";
-import { type NextResponse } from "next/server";
-import { type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type * as schema from "/Users/mjlee/Documents/Personal/mammoth-indexer/src/server/db/schema";
 import {
   TIME_INTERVAL_SECONDS,
   TIME_INTERVAL_OPTIONS,
@@ -25,131 +22,12 @@ import {
 } from "~/lib/constants/charts";
 import { collectionMaxSupply } from "~/lib/constants/collectionInfo";
 import ms from "ms";
-import { TimeData } from "~/app/_components/types";
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
-
-const singleValueFilters = [
-  FilterType.HOLDERS,
-  FilterType.LISTING_QTY,
-  FilterType.VOLUME_NATIVE,
-  FilterType.VOLUME_USD,
-];
-
-async function retry<T>(
-  fn: () => Promise<T>,
-  retries: number = MAX_RETRIES,
-  delay: number = RETRY_DELAY,
-): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (retries <= 1) throw error;
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    return retry(fn, retries - 1, delay);
-  }
-}
-
-async function fetchLatestPriceData(
-  ctx: {
-    headers: Headers;
-    res: NextResponse<unknown>;
-    db: PostgresJsDatabase<typeof schema>;
-  },
-  input: {
-    collectionAddress: string;
-    startTime?: number;
-    endTime?: number;
-    filter: FilterType;
-    timeInterval: TimeInterval;
-  },
-) {
-  const { collectionAddress, startTime, endTime, filter, timeInterval } = input;
-
-  const intervalInSeconds = TIME_INTERVAL_SECONDS[timeInterval];
-
-  const filterQuery = () => {
-    if (filter === FilterType.USD) {
-      return "priceUsd";
-    }
-    if (filter === FilterType.LISTING_QTY) {
-      return "listingQty";
-    }
-    if (filter === FilterType.HOLDERS) {
-      return "holders";
-    }
-    return "priceNative";
-  };
-
-  const queryFilter = filterQuery();
-
-  const query = ctx.db.query.priceHistory.findMany({
-    columns: {
-      [queryFilter]: true,
-      timestamp: true,
-    },
-    where: (priceHistory, { and, gte, lte, eq }) => {
-      const conditions = [
-        eq(priceHistory.collectionAddress, collectionAddress),
-        startTime ? gte(priceHistory.timestamp, startTime) : undefined,
-        endTime ? lte(priceHistory.timestamp, endTime) : undefined,
-      ].filter(Boolean);
-      return and(...conditions);
-    },
-    orderBy: (priceHistory, { asc }) => [asc(priceHistory.timestamp)],
-  });
-
-  // Group and aggregate data by time interval
-  const aggregatedData = new Map<
-    number,
-    { open: number; high: number; low: number; close: number; prices: number[] }
-  >();
-  const rawData = (await query) as (typeof priceHistory.$inferSelect)[];
-
-  rawData.forEach((record) => {
-    const intervalTimestamp =
-      Math.floor(record.timestamp / intervalInSeconds) * intervalInSeconds;
-
-    const value = Number(record[queryFilter]) || 0;
-
-    if (!aggregatedData.has(intervalTimestamp)) {
-      aggregatedData.set(intervalTimestamp, {
-        open: value,
-        high: value,
-        low: value,
-        close: value,
-        prices: [value],
-      });
-    } else {
-      const current = aggregatedData.get(intervalTimestamp)!;
-      current.high = Math.max(current.high, value);
-      current.low = Math.min(current.low, value);
-      current.close = value; // Last value in the interval
-      current.prices.push(value);
-      aggregatedData.set(intervalTimestamp, current);
-    }
-  });
-
-  // Format data based on filter type
-  return Array.from(aggregatedData.entries())
-    .map(([timestamp, data]) => {
-      if (singleValueFilters.includes(input.filter)) {
-        return {
-          time: timestamp as Time,
-          value: data.close, // Use close value for single value filters
-        };
-      }
-      return {
-        time: timestamp as Time,
-        open: data.open,
-        high: data.high,
-        low: data.low,
-        close: data.close,
-      };
-    })
-    .sort((a, b) => Number(a.time) - Number(b.time)) as TimeData[];
-}
+import { retry } from "./helpers/retry";
+import { fetchLatestPriceData } from "./helpers/priceAggregation";
+import {
+  calculatePercentageChange,
+  getMetricsForTimeframe,
+} from "./helpers/percentageChange";
 
 export const collectionDataRouter = createTRPCRouter({
   updatePriceData: publicProcedure
@@ -265,8 +143,8 @@ export const collectionDataRouter = createTRPCRouter({
       return unstable_cache(
         async () => {
           // Get data from the last 24 hours
-          const oneDayAgo = Math.floor(Date.now() / 1000) - ms("1d") / 1000;
-          console.log(oneDayAgo);
+          const currentTime = Math.floor(Date.now() / 1000);
+          const oneDayAgo = currentTime - ms("1d") / 1000;
 
           const query = await ctx.db.query.priceHistory.findMany({
             where: (priceHistory, { and, eq, gte }) =>
@@ -290,12 +168,55 @@ export const collectionDataRouter = createTRPCRouter({
             0,
           );
 
+          const current = getMetricsForTimeframe(query);
+          const changes: Record<string, MetricChanges> = {};
+
           const holders = Number(latestEntry?.holders ?? 0);
           const numListed = Number(latestEntry?.listingQty ?? 0);
           const floorPriceNative = Number(latestEntry?.priceNative ?? 0);
           const floorPriceUsd = Number(latestEntry?.priceUsd ?? 0);
           const marketCapNative = floorPriceNative * collectionMaxSupply;
           const marketCapUsd = floorPriceUsd * collectionMaxSupply;
+
+          const latestTime = query[0]?.timestamp || currentTime;
+          // Calculate changes for each timeframe
+          for (const [timeframe, seconds] of Object.entries(
+            TIME_INTERVAL_SECONDS,
+          )) {
+            const timeframeData = query.filter(
+              (entry) => entry.timestamp >= latestTime - seconds,
+            );
+            const oldestInTimeframe = getMetricsForTimeframe(
+              timeframeData.slice(-1),
+            );
+
+            changes[timeframe] = {
+              priceNative: calculatePercentageChange(
+                current.priceNative,
+                oldestInTimeframe.priceNative,
+              ),
+              priceUsd: calculatePercentageChange(
+                current.priceUsd,
+                oldestInTimeframe.priceUsd,
+              ),
+              volumeUsd: calculatePercentageChange(
+                current.volumeUsd,
+                oldestInTimeframe.volumeUsd,
+              ),
+              volumeNativeToken: calculatePercentageChange(
+                current.volumeNativeToken,
+                oldestInTimeframe.volumeNativeToken,
+              ),
+              listingQty: calculatePercentageChange(
+                current.listingQty,
+                oldestInTimeframe.listingQty,
+              ),
+              holders: calculatePercentageChange(
+                current.holders,
+                oldestInTimeframe.holders,
+              ),
+            };
+          }
 
           return {
             holders,
@@ -306,6 +227,7 @@ export const collectionDataRouter = createTRPCRouter({
             marketCapUsd,
             volume24hNative,
             volume24hUsd,
+            percentageChanges: changes,
           };
         },
         [`collection-data-${collectionAddress}`],

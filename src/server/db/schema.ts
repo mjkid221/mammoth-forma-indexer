@@ -41,8 +41,8 @@ export const priceHistory = createTable(
     totalVolumeNativeToken: numeric("total_volume_native_token"),
   },
   (table) => ({
-    collectionAddressIndex: index("collection_address_idx").on(
-      table.collectionAddress,
-    ),
+    timestampIndex: index(
+      `price_history_${env.NEXT_PUBLIC_PROJECT_NAME}_timestamp_idx`,
+    ).on(table.timestamp),
   }),
 );

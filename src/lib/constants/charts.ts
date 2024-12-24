@@ -17,7 +17,7 @@ export const TIME_INTERVAL_SECONDS = {
   "4h": ms("4h") / 1000,
   "15m": ms("15m") / 1000,
   "5m": ms("5m") / 1000,
-};
+} as const;
 
 export type TimeInterval = keyof typeof TIME_INTERVAL_SECONDS;
 

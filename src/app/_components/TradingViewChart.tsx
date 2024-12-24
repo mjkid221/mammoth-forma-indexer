@@ -47,6 +47,7 @@ export function TradingViewChart<T extends TimeData>({
   data,
   timeInterval,
   chartType = ChartType.REGULAR,
+  isLoading,
 }: ChartProps<T>) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
@@ -126,6 +127,13 @@ export function TradingViewChart<T extends TimeData>({
           color: "#26a69a",
         });
         break;
+      case ChartType.AREA:
+        chartSeries = chart.addAreaSeries({
+          lineColor: "#2962FF",
+          topColor: "#2962FF",
+          bottomColor: "rgba(41, 98, 255, 0.28)",
+        });
+        break;
       default:
         chartSeries = chart.addCandlestickSeries({
           upColor: "#26a69a",
@@ -164,5 +172,14 @@ export function TradingViewChart<T extends TimeData>({
     };
   }, [data, timeInterval, chartType]);
 
-  return <div ref={chartContainerRef} className="h-[500px] w-full" />;
+  return (
+    <div className="relative h-[500px] w-full">
+      <div ref={chartContainerRef} className="h-full w-full" />
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#26a69a] border-t-transparent" />
+        </div>
+      )}
+    </div>
+  );
 }

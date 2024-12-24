@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { memo, useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import { TradingViewChart } from "./TradingViewChart";
 import { ChartType, MultiValueTimeData, type TimeData } from "./types";
@@ -17,36 +17,43 @@ import ms from "ms";
 import { CandlestickChart } from "lucide-react";
 import { HelkinAshi } from "~/components/icons/HelkinAshi";
 import { FilterType } from "~/server/api/routers/types";
+import { usePersistingRootStore } from "~/lib/stores/root";
+import {
+  generateChartTypeKey,
+  generateFilterKey,
+} from "~/lib/constants/storageKey";
 
 interface PriceChartProps {
-  initialData: TimeData[];
+  initialData?: TimeData[];
 }
+
+const CHART_TYPE_KEY = generateChartTypeKey("price");
+const FILTER_KEY = generateFilterKey("price");
 
 export const PriceChart = memo(function PriceChart({
   initialData,
 }: PriceChartProps) {
-  const [chartType, setChartType] = useState<ChartType>(DEFAULT_CHART_TYPE);
-  const [filter, setFilter] = useState<FilterType>(DEFAULT_FILTER);
+  const { configuration, setConfiguration } = usePersistingRootStore();
 
-  useEffect(() => {
-    const savedChartType = localStorage.getItem("chartType") as ChartType;
-    const savedFilter = localStorage.getItem("chartFilter") as FilterType;
-    if (savedChartType) setChartType(savedChartType);
-    if (savedFilter) setFilter(savedFilter);
-  }, []);
+  const chartType = useMemo(
+    () => (configuration[CHART_TYPE_KEY] as ChartType) || DEFAULT_CHART_TYPE,
+    [configuration],
+  );
+  const filter = useMemo(
+    () => (configuration[FILTER_KEY] as FilterType) || DEFAULT_FILTER,
+    [configuration],
+  );
 
   const handleChartTypeChange = (type: ChartType) => {
-    setChartType(type);
-    localStorage.setItem("chartType", type);
+    setConfiguration({ [CHART_TYPE_KEY]: type });
   };
 
   const handleFilterChange = (newFilter: FilterType) => {
-    setFilter(newFilter);
-    localStorage.setItem("chartFilter", newFilter);
+    setConfiguration({ [FILTER_KEY]: newFilter });
   };
 
   const renderChart = (timeInterval: TimeInterval) => {
-    const { data } = api.collectionData.getLatest.useQuery<
+    const { data, isLoading } = api.collectionData.getLatest.useQuery<
       MultiValueTimeData[]
     >(
       getCollectionDataQueryDefaultConfig({
@@ -69,71 +76,67 @@ export const PriceChart = memo(function PriceChart({
         data={data ?? []}
         timeInterval={timeInterval}
         chartType={chartType}
+        isLoading={isLoading}
       />
     );
   };
 
-  const chartControls = (
-    <>
-      <div className="flex gap-2 border-r pr-4">
-        <Button
-          variant="outline"
-          size="sm"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          data-state={chartType === ChartType.REGULAR ? "active" : "inactive"}
-          onClick={() => handleChartTypeChange(ChartType.REGULAR)}
-        >
-          <CandlestickChart className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          data-state={
-            chartType === ChartType.HEIKIN_ASHI ? "active" : "inactive"
-          }
-          onClick={() => handleChartTypeChange(ChartType.HEIKIN_ASHI)}
-        >
-          <HelkinAshi width={28} height={28} />
-        </Button>
-      </div>
+  const chartControls = useMemo(() => {
+    return (
+      <>
+        <div className="flex gap-2 border-r pr-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            data-state={chartType === ChartType.REGULAR ? "active" : "inactive"}
+            onClick={() => handleChartTypeChange(ChartType.REGULAR)}
+          >
+            <CandlestickChart className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            data-state={
+              chartType === ChartType.HEIKIN_ASHI ? "active" : "inactive"
+            }
+            onClick={() => handleChartTypeChange(ChartType.HEIKIN_ASHI)}
+          >
+            <HelkinAshi width={28} height={28} />
+          </Button>
+        </div>
 
-      <div className="flex gap-2 border-r pr-4">
-        <Button
-          variant="outline"
-          size="sm"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          data-state={filter === FilterType.NATIVE ? "active" : "inactive"}
-          onClick={() => handleFilterChange(FilterType.NATIVE)}
-        >
-          TIA
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          data-state={filter === FilterType.USD ? "active" : "inactive"}
-          onClick={() => handleFilterChange(FilterType.USD)}
-        >
-          USD
-        </Button>
-      </div>
-    </>
-  );
-
-  const rightHeaderContent = (
-    <div className="flex items-center space-x-2">
-      <span className="text-2xl font-bold text-green-500">+2.5%</span>
-      <span className="text-muted-foreground">24h</span>
-    </div>
-  );
+        <div className="flex gap-2 border-r pr-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            data-state={filter === FilterType.NATIVE ? "active" : "inactive"}
+            onClick={() => handleFilterChange(FilterType.NATIVE)}
+          >
+            TIA
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            data-state={filter === FilterType.USD ? "active" : "inactive"}
+            onClick={() => handleFilterChange(FilterType.USD)}
+          >
+            USD
+          </Button>
+        </div>
+      </>
+    );
+  }, [chartType, filter]);
 
   return (
     <BaseChart
+      filterKey={filter}
       title="Price Chart"
       subtitle="Floor price over time"
       renderChart={renderChart}
-      rightHeaderContent={rightHeaderContent}
     >
       {chartControls}
     </BaseChart>

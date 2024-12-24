@@ -30,11 +30,22 @@ export type CoingeckoPriceData = {
   };
 };
 
+/**
+ * FilterType is used to specify the type of data to filter by.
+ * Make sure this matches the column name in the database.
+ */
 export enum FilterType {
-  NATIVE = "nativeToken",
+  NATIVE = "priceNative",
   USD = "priceUsd",
   LISTING_QTY = "listingQty",
   HOLDERS = "holders",
   VOLUME_NATIVE = "volumeNativeToken",
   VOLUME_USD = "volumeUsd",
 }
+
+export type MetricChanges = Record<FilterType, number>;
+
+export type TimeframeData = {
+  current: MetricChanges;
+  changes: Record<string, MetricChanges>;
+};
