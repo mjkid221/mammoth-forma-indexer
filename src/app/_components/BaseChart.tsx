@@ -14,6 +14,7 @@ import { usePersistingRootStore } from "~/lib/stores/root";
 import { FilterType } from "~/server/api/routers/types";
 import { api } from "~/trpc/react";
 import { useMountedState } from "~/lib/hooks/useMountedState";
+import { motion } from "framer-motion";
 
 interface BaseChartProps {
   filterKey: FilterType;
@@ -94,7 +95,13 @@ export const BaseChart = memo(function BaseChart({
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          {children}
+          <motion.div
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <div className="flex items-center gap-4">{children}</div>
+          </motion.div>
           <div className="flex flex-wrap gap-2 border-r pr-4">
             {TIME_INTERVAL_OPTIONS.map((tf) => (
               <Button

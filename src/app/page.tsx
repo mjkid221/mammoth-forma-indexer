@@ -15,7 +15,7 @@ import { HoldersChart } from "./_components/HoldersChart";
 import { ListingsChart } from "./_components/ListingsChart";
 import { nativeCurrency, projectName } from "~/lib/constants/collectionInfo";
 import { VolumeChart } from "./_components/VolumeChart";
-import { useRootStore } from "~/lib/stores/root";
+import { GithubRepoLink } from "./_components/github";
 
 export default async function Home() {
   const {
@@ -70,17 +70,6 @@ export default async function Home() {
         <div className="grid grid-cols-1 gap-4 md:flex md:items-center md:space-x-4">
           <Card className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Listed/Holders</p>
-                <p className="text-xl font-bold">
-                  {numListed}/{holders}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-2">
               <ChartArea className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">24h Volume</p>
@@ -90,6 +79,17 @@ export default async function Home() {
                     {" "}
                     ({formatCurrency(volume24hUsd)})
                   </span>
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Listed/Holders</p>
+                <p className="text-xl font-bold">
+                  {numListed}/{holders}
                 </p>
               </div>
             </div>
@@ -132,6 +132,7 @@ export default async function Home() {
           ))}
         </Tabs>
       </Card>
+      <GithubRepoLink />
     </main>
   );
 }
