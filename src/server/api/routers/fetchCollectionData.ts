@@ -178,7 +178,7 @@ export const collectionDataRouter = createTRPCRouter({
           const marketCapNative = floorPriceNative * collectionMaxSupply;
           const marketCapUsd = floorPriceUsd * collectionMaxSupply;
 
-          const latestTime = query[0]?.timestamp || currentTime;
+          const latestTime = query[0]?.timestamp ?? currentTime;
           // Calculate changes for each timeframe
           for (const [timeframe, seconds] of Object.entries(
             TIME_INTERVAL_SECONDS,

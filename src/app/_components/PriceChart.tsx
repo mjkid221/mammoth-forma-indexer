@@ -36,11 +36,11 @@ export const PriceChart = memo(function PriceChart({
   const { configuration, setConfiguration } = usePersistingRootStore();
 
   const chartType = useMemo(
-    () => (configuration[CHART_TYPE_KEY] as ChartType) || DEFAULT_CHART_TYPE,
+    () => (configuration[CHART_TYPE_KEY] as ChartType) ?? DEFAULT_CHART_TYPE,
     [configuration],
   );
   const filter = useMemo(
-    () => (configuration[FILTER_KEY] as FilterType) || DEFAULT_FILTER,
+    () => (configuration[FILTER_KEY] as FilterType) ?? DEFAULT_FILTER,
     [configuration],
   );
 

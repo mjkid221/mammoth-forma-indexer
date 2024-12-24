@@ -61,7 +61,7 @@ export const BaseChart = memo(function BaseChart({
 
   const selectedTimeFrame = useMemo(
     () =>
-      (configuration[generateTimeFrameKey(title)] as TimeInterval) ||
+      (configuration[generateTimeFrameKey(title)] as TimeInterval) ??
       initialTimeFrame,
     [configuration, initialTimeFrame, title],
   );
@@ -81,7 +81,7 @@ export const BaseChart = memo(function BaseChart({
   const percentageChanges = useMemo(() => {
     if (!data) return undefined;
     const { percentageChanges } = data;
-    return percentageChanges[selectedTimeFrame]?.[filterKey] || 0;
+    return percentageChanges[selectedTimeFrame]?.[filterKey] ?? 0;
   }, [data, selectedTimeFrame, filterKey]);
 
   return (
@@ -108,7 +108,7 @@ export const BaseChart = memo(function BaseChart({
             ))}
           </div>
           <LeftHeaderContent
-            percentageChange={Number(percentageChanges || 0)}
+            percentageChange={Number(percentageChanges ?? 0)}
             timeInterval={selectedTimeFrame}
           />
         </div>

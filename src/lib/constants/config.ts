@@ -18,9 +18,9 @@ export const getCollectionDataQueryDefaultConfig = ({
   timeInterval: TimeInterval;
 }) => {
   return {
-    collectionAddress: collectionAddress || env.NEXT_PUBLIC_COLLECTION_ADDRESS,
-    filter: filter || FilterType.NATIVE,
-    startTime: startTime || DEFAULT_START_TIME,
+    collectionAddress: collectionAddress ?? env.NEXT_PUBLIC_COLLECTION_ADDRESS,
+    filter: filter ?? FilterType.NATIVE,
+    startTime: startTime ?? DEFAULT_START_TIME,
     endTime: getEndTime(timeInterval),
     timeInterval,
   };
@@ -38,6 +38,6 @@ type GetCollectionAddressOptions = {
 export const getCollectionAddress = (options?: GetCollectionAddressOptions) => {
   return {
     collectionAddress:
-      options?.collectionAddress || env.NEXT_PUBLIC_COLLECTION_ADDRESS,
+      options?.collectionAddress ?? env.NEXT_PUBLIC_COLLECTION_ADDRESS,
   };
 };

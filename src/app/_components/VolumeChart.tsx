@@ -18,21 +18,17 @@ import {
 } from "~/lib/constants/storageKey";
 import { usePersistingRootStore } from "~/lib/stores/root";
 
-interface VolumeChartProps extends BaseChartProps {}
-
 const CHART_TYPE_KEY = generateChartTypeKey("volume");
 const FILTER_KEY = generateFilterKey("volume");
 
-export const VolumeChart = memo(function VolumeChart({
-  percentageChanges,
-}: VolumeChartProps) {
+export const VolumeChart = memo(function VolumeChart() {
   const { configuration, setConfiguration } = usePersistingRootStore();
   const chartType = useMemo(
-    () => (configuration[CHART_TYPE_KEY] as ChartType) || ChartType.AREA,
+    () => (configuration[CHART_TYPE_KEY] as ChartType) ?? ChartType.AREA,
     [configuration],
   );
   const filter = useMemo(
-    () => (configuration[FILTER_KEY] as FilterType) || FilterType.VOLUME_NATIVE,
+    () => (configuration[FILTER_KEY] as FilterType) ?? FilterType.VOLUME_NATIVE,
     [configuration],
   );
 

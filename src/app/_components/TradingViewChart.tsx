@@ -19,7 +19,7 @@ function convertToHeikinAshi<T extends MultiValueTimeData>(data: T[]): T[] {
 
   for (let i = 0; i < data.length; i++) {
     const current = data[i]!;
-    const previous = haData[i - 1] || current;
+    const previous = haData[i - 1] ?? current;
 
     // Heikin-Ashi calculations
     const haClose =
@@ -119,7 +119,10 @@ export function TradingViewChart<T extends TimeData>({
       },
     });
 
-    let chartSeries: ISeriesApi<any>; // TODO: add better types
+    let chartSeries:
+      | ISeriesApi<"Line">
+      | ISeriesApi<"Area">
+      | ISeriesApi<"Candlestick">;
 
     switch (chartType) {
       case ChartType.LINE:

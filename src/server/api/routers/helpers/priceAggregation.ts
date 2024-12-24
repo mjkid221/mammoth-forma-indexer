@@ -1,7 +1,6 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { FilterType } from "../types";
 import type * as schema from "/Users/mjlee/Documents/Personal/mammoth-indexer/src/server/db/schema";
-import { NextResponse } from "next/server";
 import { TIME_INTERVAL_SECONDS, TimeInterval } from "~/lib/constants/charts";
 import { Time } from "lightweight-charts";
 import { TimeData } from "~/app/_components/types";
@@ -22,7 +21,6 @@ const singleValueFilters = [
 export async function fetchLatestPriceData(
   ctx: {
     headers: Headers;
-    res: NextResponse<unknown>;
     db: PostgresJsDatabase<typeof schema>;
   },
   input: {
@@ -35,7 +33,7 @@ export async function fetchLatestPriceData(
 ) {
   const { collectionAddress, startTime, endTime, filter, timeInterval } = input;
   const intervalInSeconds = TIME_INTERVAL_SECONDS[timeInterval];
-  const queryFilter = filter || FilterType.NATIVE;
+  const queryFilter = filter ?? FilterType.NATIVE;
 
   const query = ctx.db.query.priceHistory.findMany({
     columns: {
@@ -64,7 +62,7 @@ export async function fetchLatestPriceData(
     const intervalTimestamp =
       Math.floor(record.timestamp / intervalInSeconds) * intervalInSeconds;
 
-    const value = Number(record[queryFilter]) || 0;
+    const value = Number(record[queryFilter]) ?? 0;
 
     if (!aggregatedData.has(intervalTimestamp)) {
       aggregatedData.set(intervalTimestamp, {
