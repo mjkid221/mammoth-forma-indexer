@@ -1,7 +1,7 @@
 import { type Time } from "lightweight-charts";
 import { TimeInterval } from "~/lib/constants/charts";
 
-export type TimeData = {
+export type MultiValueTimeData = {
   time: Time;
   open: number;
   high: number;
@@ -9,13 +9,21 @@ export type TimeData = {
   close: number;
 };
 
+export type SingleValueData = {
+  time: Time;
+  value: number;
+};
+
+export type TimeData = MultiValueTimeData | SingleValueData;
+
 export enum ChartType {
-  REGULAR = "Regular",
+  REGULAR = "Candlestick",
   HEIKIN_ASHI = "Heikin-Ashi",
+  LINE = "Line",
 }
 
-export interface ChartProps {
-  data: TimeData[];
+export interface ChartProps<T extends TimeData> {
+  data: T[];
   timeInterval: TimeInterval;
   chartType?: ChartType;
 }

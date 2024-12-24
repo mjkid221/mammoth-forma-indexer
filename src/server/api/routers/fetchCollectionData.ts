@@ -25,9 +25,17 @@ import {
 } from "~/lib/constants/charts";
 import { collectionMaxSupply } from "~/lib/constants/collectionInfo";
 import ms from "ms";
+import { TimeData } from "~/app/_components/types";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+
+const singleValueFilters = [
+  FilterType.HOLDERS,
+  FilterType.LISTING_QTY,
+  FilterType.VOLUME_NATIVE,
+  FilterType.VOLUME_USD,
+];
 
 async function retry<T>(
   fn: () => Promise<T>,
@@ -123,15 +131,24 @@ async function fetchLatestPriceData(
     }
   });
 
+  // Format data based on filter type
   return Array.from(aggregatedData.entries())
-    .map(([timestamp, data]) => ({
-      time: timestamp as Time,
-      open: data.open,
-      high: data.high,
-      low: data.low,
-      close: data.close,
-    }))
-    .sort((a, b) => Number(a.time) - Number(b.time));
+    .map(([timestamp, data]) => {
+      if (singleValueFilters.includes(input.filter)) {
+        return {
+          time: timestamp as Time,
+          value: data.close, // Use close value for single value filters
+        };
+      }
+      return {
+        time: timestamp as Time,
+        open: data.open,
+        high: data.high,
+        low: data.low,
+        close: data.close,
+      };
+    })
+    .sort((a, b) => Number(a.time) - Number(b.time)) as TimeData[];
 }
 
 export const collectionDataRouter = createTRPCRouter({

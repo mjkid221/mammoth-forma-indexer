@@ -35,4 +35,6 @@ export enum FilterType {
   USD = "priceUsd",
   LISTING_QTY = "listingQty",
   HOLDERS = "holders",
+  VOLUME_NATIVE = "volumeNativeToken",
+  VOLUME_USD = "volumeUsd",
 }

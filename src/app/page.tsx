@@ -13,9 +13,11 @@ import {
 } from "~/lib/constants/config";
 import { FilterType } from "~/server/api/routers/types";
 import { formatCurrency, formatNumber } from "~/lib/utils/currency";
+import { HoldersChart } from "./_components/HoldersChart";
 
 const projectName = env.NEXT_PUBLIC_PROJECT_NAME;
 const nativeCurrency = env.NEXT_PUBLIC_NATIVE_CURRENCY;
+
 export default async function Home() {
   const {
     floorPriceNative,
@@ -33,6 +35,29 @@ export default async function Home() {
       filter: FilterType.NATIVE,
     }),
   );
+
+  const TABS = [
+    {
+      label: "Price",
+      component: <PriceChart initialData={priceData} />,
+    },
+    {
+      label: "Volume",
+      component: (
+        <TradingViewChart data={priceData} timeInterval={DEFAULT_TIME_FRAME} />
+      ),
+    },
+    {
+      label: "Listings",
+      component: (
+        <TradingViewChart data={priceData} timeInterval={DEFAULT_TIME_FRAME} />
+      ),
+    },
+    {
+      label: "Holders",
+      component: <HoldersChart />,
+    },
+  ];
 
   return (
     <main className="container mx-auto space-y-4 p-4">
@@ -92,48 +117,23 @@ export default async function Home() {
       </div>
 
       <Card className="p-6">
-        <Tabs defaultValue="price" className="space-y-4">
+        <Tabs defaultValue={TABS[0]!.label} className="space-y-4">
           <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-            <TabsTrigger
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              value="price"
-            >
-              Price
-            </TabsTrigger>
-            <TabsTrigger
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              value="volume"
-            >
-              Volume
-            </TabsTrigger>
-            <TabsTrigger
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              value="listings"
-            >
-              Listings
-            </TabsTrigger>
-            <TabsTrigger
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              value="holders"
-            >
-              Holders
-            </TabsTrigger>
+            {TABS.map(({ label }) => (
+              <TabsTrigger
+                key={label}
+                value={label}
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
-          <TabsContent value="price" className="space-y-4">
-            <PriceChart initialData={priceData} />
-          </TabsContent>
-          <TabsContent value="volume">
-            <TradingViewChart
-              data={priceData}
-              timeInterval={DEFAULT_TIME_FRAME}
-            />
-          </TabsContent>
-          <TabsContent value="sales">
-            <TradingViewChart
-              data={priceData}
-              timeInterval={DEFAULT_TIME_FRAME}
-            />
-          </TabsContent>
+          {TABS.map(({ label, component }) => (
+            <TabsContent key={label} value={label} className="space-y-4">
+              {component}
+            </TabsContent>
+          ))}
         </Tabs>
       </Card>
     </main>

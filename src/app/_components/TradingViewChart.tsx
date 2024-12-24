@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, type Time } from "lightweight-charts";
-import { ChartProps, ChartType, type TimeData } from "./types";
-import { TimeInterval } from "~/lib/constants/charts";
+import {
+  createChart,
+  ColorType,
+  type Time,
+  ISeriesApi,
+} from "lightweight-charts";
+import {
+  ChartProps,
+  ChartType,
+  MultiValueTimeData,
+  type TimeData,
+} from "./types";
 
-function convertToHeikinAshi(data: TimeData[]): TimeData[] {
-  const haData: TimeData[] = [];
+function convertToHeikinAshi<T extends MultiValueTimeData>(data: T[]): T[] {
+  const haData: T[] = [];
 
   for (let i = 0; i < data.length; i++) {
     const current = data[i]!;
@@ -28,17 +37,17 @@ function convertToHeikinAshi(data: TimeData[]): TimeData[] {
       high: haHigh,
       low: haLow,
       close: haClose,
-    });
+    } as T);
   }
 
   return haData;
 }
 
-export function TradingViewChart({
+export function TradingViewChart<T extends TimeData>({
   data,
   timeInterval,
   chartType = ChartType.REGULAR,
-}: ChartProps) {
+}: ChartProps<T>) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
 
@@ -109,18 +118,31 @@ export function TradingViewChart({
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
-      upColor: "#26a69a",
-      downColor: "#ef5350",
-      borderVisible: false,
-      wickUpColor: "#26a69a",
-      wickDownColor: "#ef5350",
-    });
+    let chartSeries: ISeriesApi<any>; // TODO: add better types
+
+    switch (chartType) {
+      case ChartType.LINE:
+        chartSeries = chart.addLineSeries({
+          color: "#26a69a",
+        });
+        break;
+      default:
+        chartSeries = chart.addCandlestickSeries({
+          upColor: "#26a69a",
+          downColor: "#ef5350",
+          borderVisible: false,
+          wickUpColor: "#26a69a",
+          wickDownColor: "#ef5350",
+        });
+        break;
+    }
 
     // Use regular or Heikin-Ashi data based on chartType
     const chartData =
-      chartType === ChartType.HEIKIN_ASHI ? convertToHeikinAshi(data) : data;
-    candlestickSeries.setData(chartData);
+      chartType === ChartType.HEIKIN_ASHI
+        ? convertToHeikinAshi(data as MultiValueTimeData[])
+        : data;
+    chartSeries.setData(chartData);
 
     chart.timeScale().fitContent();
 
