@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { TradingViewChart } from "./TradingViewChart";
 import { ChartType, MultiValueTimeData, type TimeData } from "./types";
@@ -22,6 +22,7 @@ import {
   generateChartTypeKey,
   generateFilterKey,
 } from "~/lib/constants/storageKey";
+import { useMountedState } from "~/lib/hooks/useMountedState";
 
 interface PriceChartProps {
   initialData?: TimeData[];
@@ -34,6 +35,7 @@ export const PriceChart = memo(function PriceChart({
   initialData,
 }: PriceChartProps) {
   const { configuration, setConfiguration } = usePersistingRootStore();
+  const { getMountedStateClasses } = useMountedState();
 
   const chartType = useMemo(
     () => (configuration[CHART_TYPE_KEY] as ChartType) ?? DEFAULT_CHART_TYPE,
@@ -88,7 +90,9 @@ export const PriceChart = memo(function PriceChart({
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={chartType === ChartType.REGULAR ? "active" : "inactive"}
             onClick={() => handleChartTypeChange(ChartType.REGULAR)}
           >
@@ -97,7 +101,9 @@ export const PriceChart = memo(function PriceChart({
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={
               chartType === ChartType.HEIKIN_ASHI ? "active" : "inactive"
             }
@@ -111,7 +117,9 @@ export const PriceChart = memo(function PriceChart({
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={filter === FilterType.NATIVE ? "active" : "inactive"}
             onClick={() => handleFilterChange(FilterType.NATIVE)}
           >
@@ -120,7 +128,9 @@ export const PriceChart = memo(function PriceChart({
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={filter === FilterType.USD ? "active" : "inactive"}
             onClick={() => handleFilterChange(FilterType.USD)}
           >
@@ -129,7 +139,7 @@ export const PriceChart = memo(function PriceChart({
         </div>
       </>
     );
-  }, [chartType, filter]);
+  }, [chartType, filter, getMountedStateClasses]);
 
   return (
     <BaseChart

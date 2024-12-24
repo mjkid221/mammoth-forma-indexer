@@ -11,18 +11,20 @@ import { getCollectionDataQueryDefaultConfig } from "~/lib/constants/config";
 import ms from "ms";
 import { FilterType } from "~/server/api/routers/types";
 import { nativeCurrency } from "~/lib/constants/collectionInfo";
-import { BaseChartProps } from "./types";
 import {
   generateChartTypeKey,
   generateFilterKey,
 } from "~/lib/constants/storageKey";
 import { usePersistingRootStore } from "~/lib/stores/root";
+import { useMountedState } from "~/lib/hooks/useMountedState";
 
 const CHART_TYPE_KEY = generateChartTypeKey("volume");
 const FILTER_KEY = generateFilterKey("volume");
 
 export const VolumeChart = memo(function VolumeChart() {
   const { configuration, setConfiguration } = usePersistingRootStore();
+  const { getMountedStateClasses } = useMountedState();
+
   const chartType = useMemo(
     () => (configuration[CHART_TYPE_KEY] as ChartType) ?? ChartType.AREA,
     [configuration],
@@ -68,7 +70,9 @@ export const VolumeChart = memo(function VolumeChart() {
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={
               filter === FilterType.VOLUME_NATIVE ? "active" : "inactive"
             }
@@ -79,7 +83,9 @@ export const VolumeChart = memo(function VolumeChart() {
           <Button
             variant="outline"
             size="sm"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className={getMountedStateClasses(
+              "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
             data-state={
               filter === FilterType.VOLUME_USD ? "active" : "inactive"
             }

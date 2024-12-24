@@ -1,7 +1,7 @@
 "use client";
 
 import ms from "ms";
-import { memo, type ReactNode, useMemo } from "react";
+import { memo, type ReactNode, useMemo, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   TimeInterval,
@@ -13,6 +13,7 @@ import { generateTimeFrameKey } from "~/lib/constants/storageKey";
 import { usePersistingRootStore } from "~/lib/stores/root";
 import { FilterType } from "~/server/api/routers/types";
 import { api } from "~/trpc/react";
+import { useMountedState } from "~/lib/hooks/useMountedState";
 
 interface BaseChartProps {
   filterKey: FilterType;
@@ -23,7 +24,7 @@ interface BaseChartProps {
   initialTimeFrame?: TimeInterval;
 }
 
-const LeftHeaderContent = ({
+const RightHeaderContent = ({
   percentageChange,
   timeInterval,
 }: {
@@ -58,6 +59,7 @@ export const BaseChart = memo(function BaseChart({
   initialTimeFrame = DEFAULT_TIME_FRAME,
 }: BaseChartProps) {
   const { configuration, setConfiguration } = usePersistingRootStore();
+  const { getMountedStateClasses } = useMountedState();
 
   const selectedTimeFrame = useMemo(
     () =>
@@ -75,9 +77,9 @@ export const BaseChart = memo(function BaseChart({
     {
       refetchInterval: ms("5m"),
       staleTime: ms("5m"),
+      refetchOnWindowFocus: false,
     },
   );
-
   const percentageChanges = useMemo(() => {
     if (!data) return undefined;
     const { percentageChanges } = data;
@@ -99,7 +101,9 @@ export const BaseChart = memo(function BaseChart({
                 key={tf}
                 variant="outline"
                 size="sm"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className={getMountedStateClasses(
+                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                )}
                 data-state={tf === selectedTimeFrame ? "active" : "inactive"}
                 onClick={() => handleTimeFrameChange(tf)}
               >
@@ -107,7 +111,7 @@ export const BaseChart = memo(function BaseChart({
               </Button>
             ))}
           </div>
-          <LeftHeaderContent
+          <RightHeaderContent
             percentageChange={Number(percentageChanges ?? 0)}
             timeInterval={selectedTimeFrame}
           />
