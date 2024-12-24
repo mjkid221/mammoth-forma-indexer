@@ -57,7 +57,7 @@ export default async function Home() {
 
   return (
     <main className="container mx-auto space-y-4 p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-4xl font-bold">{projectName}</h1>
           <p className="text-muted-foreground">
@@ -67,22 +67,7 @@ export default async function Home() {
             </span>
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          <Card className="p-4">
-            <div className="flex items-center space-x-2">
-              <ChartArea className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">24h Volume</p>
-                <p className="text-xl font-bold">
-                  {formatNumber(volume24hNative)} {nativeCurrency}
-                  <span className="text-[12px] text-muted-foreground">
-                    {" "}
-                    ({formatCurrency(volume24hUsd)})
-                  </span>
-                </p>
-              </div>
-            </div>
-          </Card>
+        <div className="grid grid-cols-1 gap-4 md:flex md:items-center md:space-x-4">
           <Card className="p-4">
             <div className="flex items-center space-x-2">
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -96,12 +81,27 @@ export default async function Home() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center space-x-2">
+              <ChartArea className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">24h Volume</p>
+                <p className="text-xl font-bold">
+                  {formatNumber(volume24hNative)} {nativeCurrency}
+                  <span className="hidden text-[12px] text-muted-foreground xl:inline">
+                    {" "}
+                    ({formatCurrency(volume24hUsd)})
+                  </span>
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Market Cap</p>
                 <p className="text-xl font-bold">
                   {formatNumber(marketCapNative)} {nativeCurrency}
-                  <span className="text-[12px] text-muted-foreground">
+                  <span className="hidden text-[12px] text-muted-foreground xl:inline">
                     {" "}
                     ({formatCurrency(marketCapUsd)})
                   </span>

@@ -86,14 +86,14 @@ export const BaseChart = memo(function BaseChart({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold">{title}</h2>
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-wrap items-center gap-4">
           {children}
-          <div className="flex gap-2 border-r pr-4">
+          <div className="flex flex-wrap gap-2 border-r pr-4">
             {TIME_INTERVAL_OPTIONS.map((tf) => (
               <Button
                 key={tf}
