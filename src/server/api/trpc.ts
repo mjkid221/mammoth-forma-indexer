@@ -104,20 +104,6 @@ export const cronAuthMiddleware = t.middleware(({ next, ctx }) => {
   return next();
 });
 
-// export const corsMiddleware = t.middleware(({ next, ctx }) => {
-//   const origin = ctx.headers.get("origin");
-//   const allowedOrigins = [getBaseUrl()];
-
-//   if (!origin ?? !allowedOrigins.includes(origin)) {
-//     throw new TRPCError({
-//       code: "FORBIDDEN",
-//       message: "Origin not allowed",
-//     });
-//   }
-
-//   return next();
-// });
-
 /**
  * Public (unauthenticated) procedure
  *
@@ -126,9 +112,7 @@ export const cronAuthMiddleware = t.middleware(({ next, ctx }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
-export const protectedProcedure = t.procedure
-  // .use(corsMiddleware)
-  .use(timingMiddleware);
+export const protectedProcedure = t.procedure.use(timingMiddleware);
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
