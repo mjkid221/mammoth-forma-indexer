@@ -29,3 +29,10 @@ export type CoingeckoPriceData = {
     };
   };
 };
+
+export enum FilterType {
+  NATIVE = "nativeToken",
+  USD = "priceUsd",
+  LISTING_QTY = "listingQty",
+  HOLDERS = "holders",
+}

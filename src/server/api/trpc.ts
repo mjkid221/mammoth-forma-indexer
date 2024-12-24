@@ -7,6 +7,7 @@
  * need to use are documented accordingly near the end.
  */
 import { initTRPC, TRPCError } from "@trpc/server";
+import { type NextResponse } from "next/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -24,7 +25,10 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  res: NextResponse;
+}) => {
   return {
     db,
     ...opts,
@@ -106,6 +110,7 @@ export const cronAuthMiddleware = t.middleware(({ next, ctx }) => {
 
 export const corsMiddleware = t.middleware(({ next, ctx }) => {
   const origin = ctx.headers.get("origin");
+  console.log("originoriginorigin: ", ctx.headers);
   const allowedOrigins = [getBaseUrl()];
 
   if (!origin || !allowedOrigins.includes(origin)) {
@@ -118,14 +123,15 @@ export const corsMiddleware = t.middleware(({ next, ctx }) => {
   return next();
 });
 
-export const cacheHeaderMiddleware = t.middleware(async ({ next, ctx }) => {
-  const result = await next();
-  ctx.headers.set(
-    "cache-control",
-    "public, max-age=300, stale-while-revalidate=300",
-  );
-  return result;
-});
+// export const cacheHeaderMiddleware = t.middleware(async ({ next, ctx }) => {
+//   const result = await next();
+//   return {
+//     ...result,
+//     headers: {
+//       "Cache-Control": "public, max-age=300, stale-while-revalidate=300",
+//     },
+//   };
+// });
 
 /**
  * Public (unauthenticated) procedure
@@ -136,7 +142,7 @@ export const cacheHeaderMiddleware = t.middleware(async ({ next, ctx }) => {
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
-  .use(corsMiddleware)
+  // .use(corsMiddleware)
   .use(timingMiddleware);
 
 function getBaseUrl() {

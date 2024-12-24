@@ -22,6 +22,8 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_PROJECT_NAME: z.string(),
     NEXT_PUBLIC_COLLECTION_ADDRESS: z.string(),
+    NEXT_PUBLIC_COLLECTION_MAX_SUPPLY: z.coerce.number(),
+    NEXT_PUBLIC_NATIVE_CURRENCY: z.string(),
   },
 
   /**
@@ -33,6 +35,9 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_PROJECT_NAME: process.env.NEXT_PUBLIC_PROJECT_NAME,
     NEXT_PUBLIC_COLLECTION_ADDRESS: process.env.NEXT_PUBLIC_COLLECTION_ADDRESS,
+    NEXT_PUBLIC_COLLECTION_MAX_SUPPLY:
+      process.env.NEXT_PUBLIC_COLLECTION_MAX_SUPPLY,
+    NEXT_PUBLIC_NATIVE_CURRENCY: process.env.NEXT_PUBLIC_NATIVE_CURRENCY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
