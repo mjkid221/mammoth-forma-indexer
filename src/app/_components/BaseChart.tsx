@@ -1,7 +1,7 @@
 "use client";
 
 import ms from "ms";
-import { memo, type ReactNode, useMemo } from "react";
+import { memo, type ReactNode, useMemo, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   TimeInterval,
@@ -13,6 +13,8 @@ import { generateTimeFrameKey } from "~/lib/constants/storageKey";
 import { usePersistingRootStore } from "~/lib/stores/root";
 import { FilterType } from "~/server/api/routers/types";
 import { api } from "~/trpc/react";
+import { useMountedState } from "~/lib/hooks/useMountedState";
+import { motion } from "framer-motion";
 
 interface BaseChartProps {
   filterKey: FilterType;
@@ -23,7 +25,7 @@ interface BaseChartProps {
   initialTimeFrame?: TimeInterval;
 }
 
-const LeftHeaderContent = ({
+const RightHeaderContent = ({
   percentageChange,
   timeInterval,
 }: {
@@ -58,6 +60,7 @@ export const BaseChart = memo(function BaseChart({
   initialTimeFrame = DEFAULT_TIME_FRAME,
 }: BaseChartProps) {
   const { configuration, setConfiguration } = usePersistingRootStore();
+  const { getMountedStateClasses } = useMountedState();
 
   const selectedTimeFrame = useMemo(
     () =>
@@ -75,9 +78,9 @@ export const BaseChart = memo(function BaseChart({
     {
       refetchInterval: ms("5m"),
       staleTime: ms("5m"),
+      refetchOnWindowFocus: false,
     },
   );
-
   const percentageChanges = useMemo(() => {
     if (!data) return undefined;
     const { percentageChanges } = data;
@@ -86,20 +89,28 @@ export const BaseChart = memo(function BaseChart({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold">{title}</h2>
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex items-center space-x-4">
-          {children}
-          <div className="flex gap-2 border-r pr-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <motion.div
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <div className="flex items-center gap-4">{children}</div>
+          </motion.div>
+          <div className="flex flex-wrap gap-2 border-r pr-4">
             {TIME_INTERVAL_OPTIONS.map((tf) => (
               <Button
                 key={tf}
                 variant="outline"
                 size="sm"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className={getMountedStateClasses(
+                  "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                )}
                 data-state={tf === selectedTimeFrame ? "active" : "inactive"}
                 onClick={() => handleTimeFrameChange(tf)}
               >
@@ -107,7 +118,7 @@ export const BaseChart = memo(function BaseChart({
               </Button>
             ))}
           </div>
-          <LeftHeaderContent
+          <RightHeaderContent
             percentageChange={Number(percentageChanges ?? 0)}
             timeInterval={selectedTimeFrame}
           />

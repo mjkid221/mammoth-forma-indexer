@@ -11,7 +11,6 @@ import { getCollectionDataQueryDefaultConfig } from "~/lib/constants/config";
 import ms from "ms";
 import { FilterType } from "~/server/api/routers/types";
 import { nativeCurrency } from "~/lib/constants/collectionInfo";
-import { BaseChartProps } from "./types";
 import {
   generateChartTypeKey,
   generateFilterKey,
