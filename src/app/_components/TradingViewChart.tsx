@@ -1,15 +1,54 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, type Time } from "lightweight-charts";
-import { type TimeData } from "./types";
+import {
+  createChart,
+  ColorType,
+  type Time,
+  ISeriesApi,
+} from "lightweight-charts";
+import {
+  ChartProps,
+  ChartType,
+  MultiValueTimeData,
+  type TimeData,
+} from "./types";
 
-interface ChartProps {
-  data: TimeData[];
-  timeInterval: "1w" | "1d" | "4h" | "15m" | "10m" | "5m";
+function convertToHeikinAshi<T extends MultiValueTimeData>(data: T[]): T[] {
+  const haData: T[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    const current = data[i]!;
+    const previous = haData[i - 1] ?? current;
+
+    // Heikin-Ashi calculations
+    const haClose =
+      (current.open + current.high + current.low + current.close) / 4;
+    const haOpen =
+      i === 0
+        ? (current.open + current.close) / 2
+        : (previous.open + previous.close) / 2;
+    const haHigh = Math.max(current.high, haOpen, haClose);
+    const haLow = Math.min(current.low, haOpen, haClose);
+
+    haData.push({
+      time: current.time,
+      open: haOpen,
+      high: haHigh,
+      low: haLow,
+      close: haClose,
+    } as T);
+  }
+
+  return haData;
 }
 
-export function TradingViewChart({ data, timeInterval }: ChartProps) {
+export function TradingViewChart<T extends TimeData>({
+  data,
+  timeInterval,
+  chartType = ChartType.REGULAR,
+  isLoading,
+}: ChartProps<T>) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<unknown>(null);
 
@@ -40,7 +79,6 @@ export function TradingViewChart({ data, timeInterval }: ChartProps) {
               hour12: false,
             });
           case "15m":
-          case "10m":
           case "5m":
             return date.toLocaleTimeString("en-US", {
               hour: "2-digit",
@@ -81,12 +119,41 @@ export function TradingViewChart({ data, timeInterval }: ChartProps) {
       },
     });
 
-    const lineSeries = chart.addLineSeries({
-      color: "#2563eb",
-      lineWidth: 2,
-    });
+    let chartSeries:
+      | ISeriesApi<"Line">
+      | ISeriesApi<"Area">
+      | ISeriesApi<"Candlestick">;
 
-    lineSeries.setData(data);
+    switch (chartType) {
+      case ChartType.LINE:
+        chartSeries = chart.addLineSeries({
+          color: "#26a69a",
+        });
+        break;
+      case ChartType.AREA:
+        chartSeries = chart.addAreaSeries({
+          lineColor: "#2962FF",
+          topColor: "#2962FF",
+          bottomColor: "rgba(41, 98, 255, 0.28)",
+        });
+        break;
+      default:
+        chartSeries = chart.addCandlestickSeries({
+          upColor: "#26a69a",
+          downColor: "#ef5350",
+          borderVisible: false,
+          wickUpColor: "#26a69a",
+          wickDownColor: "#ef5350",
+        });
+        break;
+    }
+
+    // Use regular or Heikin-Ashi data based on chartType
+    const chartData =
+      chartType === ChartType.HEIKIN_ASHI
+        ? convertToHeikinAshi(data as MultiValueTimeData[])
+        : data;
+    chartSeries.setData(chartData);
 
     chart.timeScale().fitContent();
 
@@ -106,7 +173,16 @@ export function TradingViewChart({ data, timeInterval }: ChartProps) {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [data, timeInterval]);
+  }, [data, timeInterval, chartType]);
 
-  return <div ref={chartContainerRef} className="h-[500px] w-full" />;
+  return (
+    <div className="relative h-[500px] w-full">
+      <div ref={chartContainerRef} className="h-full w-full" />
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#26a69a] border-t-transparent" />
+        </div>
+      )}
+    </div>
+  );
 }
