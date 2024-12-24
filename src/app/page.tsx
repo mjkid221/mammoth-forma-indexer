@@ -133,6 +133,15 @@ export default async function Home() {
         </Tabs>
       </Card>
       <GithubRepoLink />
+      <div className="mt-8 h-[800px] w-full overflow-hidden rounded-[12px] border shadow-sm">
+        <div className="origin-top-left scale-[0.8]">
+          <iframe
+            src="https://modularium.art/collection/mammoths"
+            className="h-[1000px] w-[125%]"
+            title="Modularium Collection Page"
+          />
+        </div>
+      </div>
     </main>
   );
 }
