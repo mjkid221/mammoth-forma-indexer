@@ -1,29 +1,64 @@
-# Create T3 App
+# Mammoths Collection Market Analytics App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A [T3 Stack](https://create.t3.gg/) project that tracks and indexes marketplace data for the Mammoths NFT collection.
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- 5-minute interval data polling via cron jobs
+- Price history tracking with multiple data sources:
+  - CoinMarketCap (primary)
+  - CoinGecko (fallback)
+- Supabase PostgreSQL database integration
+- Multi-level caching strategy:
+  - tRPC client-side caching
+  - Next.js unstable cache implementation
+- Real-time market analytics including:
+  - Holder statistics
+  - Listing quantities
+  - Volume tracking (Native token & USD)
+  - Price history (Native token & USD)
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- [Next.js](https://nextjs.org) - React framework
+- [Drizzle ORM](https://orm.drizzle.team) - Database ORM
+- [Supabase PostgreSQL](https://supabase.com) - Database
+- [tRPC](https://trpc.io) - Type-safe API
+- [NextAuth.js](https://next-auth.js.org) - Authentication
+- [Tailwind CSS](https://tailwindcss.com) - Styling
 
-## Learn More
+## Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+1. Clone the repository
+2. Install dependencies:
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+```
+pnpm install
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+3. Copy the `.env.example` file to `.env` and fill in the required parameters
+4. Start the development server:
+```
+pnpm dev
+```
 
-## How do I deploy this?
+## Environment Variables
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+See `.env.example` for the required configuration parameters, including:
+- Database credentials
+- API keys for CoinMarketCap and CoinGecko
+- Project configuration
+
+## Deployment
+
+This project is configured for deployment on Vercel. For other deployment options, follow deployment guides for [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker).
+
+## Database Schema
+
+The price history schema is defined in `src/server/db/schema.ts` and includes fields for:
+- Collection address
+- Timestamp tracking
+- Price data (native token and USD)
+- Holder statistics
+- Listing quantities
+- Volume metrics
