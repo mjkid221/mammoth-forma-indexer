@@ -1,9 +1,9 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { FilterType } from "../types";
-import type * as schema from "/Users/mjlee/Documents/Personal/mammoth-indexer/src/server/db/schema";
 import { TIME_INTERVAL_SECONDS, TimeInterval } from "~/lib/constants/charts";
 import { Time } from "lightweight-charts";
 import { TimeData } from "~/app/_components/types";
+import * as schema from "~/server/db/schema";
 
 const singleValueFilters = [
   FilterType.HOLDERS,
