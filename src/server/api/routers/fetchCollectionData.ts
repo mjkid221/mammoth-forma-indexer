@@ -12,7 +12,7 @@ import {
   type CoinmarketcapPriceData,
   type CoingeckoPriceData,
   FilterType,
-  MetricChanges,
+  type MetricChanges,
 } from "./types";
 import { unstable_cache } from "next/cache";
 import {

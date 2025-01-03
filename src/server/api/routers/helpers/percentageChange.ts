@@ -1,5 +1,5 @@
-import { priceHistory } from "~/server/db/schema";
-import { TimeframeData } from "../types";
+import { type priceHistory } from "~/server/db/schema";
+import { type TimeframeData } from "../types";
 
 export function calculatePercentageChange(
   current: number,

@@ -3,13 +3,13 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { TradingViewChart } from "./TradingViewChart";
-import { ChartType, MultiValueTimeData, type TimeData } from "./types";
+import { ChartType, type MultiValueTimeData, type TimeData } from "./types";
 import { BaseChart } from "./BaseChart";
 import {
   DEFAULT_CHART_TYPE,
   DEFAULT_FILTER,
   DEFAULT_TIME_FRAME,
-  TimeInterval,
+  type TimeInterval,
 } from "~/lib/constants/charts";
 import { api } from "~/trpc/react";
 import { getCollectionDataQueryDefaultConfig } from "~/lib/constants/config";
@@ -46,13 +46,19 @@ export const PriceChart = memo(function PriceChart({
     [configuration],
   );
 
-  const handleChartTypeChange = (type: ChartType) => {
-    setConfiguration({ [CHART_TYPE_KEY]: type });
-  };
+  const handleChartTypeChange = useMemo(
+    () => (type: ChartType) => {
+      setConfiguration({ [CHART_TYPE_KEY]: type });
+    },
+    [setConfiguration],
+  );
 
-  const handleFilterChange = (newFilter: FilterType) => {
-    setConfiguration({ [FILTER_KEY]: newFilter });
-  };
+  const handleFilterChange = useMemo(
+    () => (newFilter: FilterType) => {
+      setConfiguration({ [FILTER_KEY]: newFilter });
+    },
+    [setConfiguration],
+  );
 
   const renderChart = (timeInterval: TimeInterval) => {
     const { data, isLoading } = api.collectionData.getLatest.useQuery<
@@ -139,7 +145,13 @@ export const PriceChart = memo(function PriceChart({
         </div>
       </>
     );
-  }, [chartType, filter, getMountedStateClasses]);
+  }, [
+    chartType,
+    filter,
+    getMountedStateClasses,
+    handleChartTypeChange,
+    handleFilterChange,
+  ]);
 
   return (
     <BaseChart

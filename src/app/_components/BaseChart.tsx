@@ -1,17 +1,17 @@
 "use client";
 
 import ms from "ms";
-import { memo, type ReactNode, useMemo, useEffect, useState } from "react";
+import { memo, type ReactNode, useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import {
-  TimeInterval,
+  type TimeInterval,
   TIME_INTERVAL_OPTIONS,
   DEFAULT_TIME_FRAME,
 } from "~/lib/constants/charts";
 import { getCollectionAddress } from "~/lib/constants/config";
 import { generateTimeFrameKey } from "~/lib/constants/storageKey";
 import { usePersistingRootStore } from "~/lib/stores/root";
-import { FilterType } from "~/server/api/routers/types";
+import { type FilterType } from "~/server/api/routers/types";
 import { api } from "~/trpc/react";
 import { useMountedState } from "~/lib/hooks/useMountedState";
 import { motion } from "framer-motion";
