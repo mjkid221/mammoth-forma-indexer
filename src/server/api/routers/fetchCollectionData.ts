@@ -40,7 +40,7 @@ export const collectionDataRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input: { collectionAddress, networkName } }) => {
       const { data } = await modulariumApi.get<PriceData>(
-        `/stats/${collectionAddress}`,
+        `/collection/${collectionAddress}/stats`,
       );
 
       let tokenPrice: number;
